@@ -1,0 +1,42 @@
+*.o
+*.so
+*.a
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+*.root          # ROOT data files, grandes
+*.hepdata       # Datos HEP
+
+# Uncomment this line in the actual projets to ignore raw data files
+# data/raw/*      # raw data files, big and not needed in the repository
+# results/plots/*.pdf  # generated plots, can be large and are not needed in the repository
+.vscode/
+
+# Byte-compiled / optimized / DLL files
+*.py[cod]
+
+# Distribution / packaging
+.Python
+env/
+.env/
+
+# DotEnv configuration
+.env
+
+# Jupyter NB Checkpoints
+.ipynb_checkpoints/
+
+# Mac OS-specific storage files
+.DS_Store
+
+*.HEIC
+*.png
+*.xlsx
+*.pdf
+*.docx
+*.csv
+
+references-papers/

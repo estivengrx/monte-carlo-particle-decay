@@ -1,0 +1,12 @@
+name: particle-physics-env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - numpy
+  - pandas
+  - matplotlib
+  - jupyter
+  - scikit-learn
+  - root
+  - geant4
