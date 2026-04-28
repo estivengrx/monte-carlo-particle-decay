@@ -1,0 +1,151 @@
+\documentclass[letterpaper,10pt]{article}
+
+% ----------------------------
+% Paquetes
+% ----------------------------
+\usepackage{geometry}
+\geometry{
+  left=1cm,
+  right=1cm,
+  top=1.5cm,
+  bottom=0.8cm,
+  headheight=12pt
+}
+
+\usepackage[utf8]{inputenc} \usepackage[T1]{fontenc} \usepackage{geometry, graphicx, amsmath, amssymb, hyperref, fancyhdr, parskip, caption, xcolor, wrapfig, float, titlesec, setspace}
+
+\usepackage[nopatch=footnote]{microtype}
+
+\usepackage{csquotes}
+
+\usepackage[backend=biber,style=apa]{biblatex}
+\addbibresource{references.bib}
+
+% ----------------------------
+% Formato del documento
+% ----------------------------
+\setlength{\parskip}{0.4em}
+\setlength{\parindent}{0.8em}
+\setstretch{1} % interlineado compacto
+
+\hypersetup{
+    colorlinks = true,
+    linkcolor = blue,
+    citecolor = red,
+    urlcolor  = blue
+}
+
+% ----------------------------
+% Encabezado y pie de página
+% ----------------------------
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\scriptsize Learning the theory of Monte Carlo methods}
+\rhead{\scriptsize Page \thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ----------------------------
+% Formato de títulos
+% ----------------------------
+\titleformat{\section}
+  {\normalsize\bfseries}{\thesection.}{0.4em}{}
+
+\titleformat{\subsection}
+  {\small\bfseries}{\thesubsection.}{0.4em}{}
+
+\titlespacing*{\section}{0pt}{0.8em}{0.3em}
+\titlespacing*{\subsection}{0pt}{0.6em}{0.2em}
+
+% ----------------------------
+% Portada
+% ----------------------------
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+  
+    % ---- Main title ----
+    {\huge\bfseries Learning the theory of Monte Carlo methods}\\[0.3cm]
+    
+    % ---- Sub title ----
+    {\Large Based on Simon Sirca - Probability for physicists}\\[1cm]
+
+    {\normalsize \textbf{Estiven Castrillon Alzate, \href{mailto:estiven.castrillon2@udea.edu.co}{\texttt{estiven.castrillon2@udea.edu.co}}}}\\
+    {\normalsize \textbf{Date:} \today}\\[2cm]
+\end{titlepage}
+
+\section{Introduction}
+
+The Monte-Carlo method is a tool used widely in computer simulations in experimental physics. Here, I will study this mathematical and computational technique to enhance my understanding of simulations in High Energy Physics (HEP). The main reference for this learning process is the book \textit{Probability for Physicists}~\parencite{Sirca_2016}. 
+
+The Monte-Carlo method considered in this work is the acceptance-rejection method, a technique used to generate random samples from a probability distribution that may be difficult to sample from directly. The method works by generating random samples from a proposal distribution and accepting or rejecting those samples according to a criterion that guarantees that the accepted samples follow the desired target distribution~\parencite{Nakade_2025}.
+
+\subsection{Acceptance-Rejection Method}
+
+Let $p(x)$ be a probability density function (PDF) defined on an interval $[a,b]$, from which we want to sample. Suppose that there exists a constant $M > 0$ such that
+\begin{equation}
+    p(x) \leq M, \quad \forall x \in [a,b].
+\end{equation}
+
+The acceptance-rejection method is based on sampling uniformly from the rectangular region defined by $[a,b] \times [0,M]$, and retaining only those points that lie under the curve $y = p(x)$. According to the fundamental theorem of the method, the marginal distribution of the accepted $x$ values follows the target distribution $p(x)$~\parencite{Nakade_2025}.
+
+\subsection{Algorithm}
+
+The basic acceptance-rejection algorithm can be summarized as follows:
+
+\begin{enumerate}
+    \item \textbf{Generate a proposal:} Sample 
+    \begin{equation}
+        x \sim \mathcal{U}(a,b).
+    \end{equation}
+    
+    \item \textbf{Generate a test value:} Sample 
+    \begin{equation}
+        y \sim \mathcal{U}(0,M).
+    \end{equation}
+    
+    \item \textbf{Acceptance criterion:} Accept $x$ if
+    \begin{equation}
+        y \leq p(x),
+    \end{equation}
+    otherwise reject the sample and return to step 1.
+\end{enumerate}
+
+This procedure ensures that the accepted samples are distributed according to $p(x)$.
+
+\subsection{Extension with Proposal Distributions}
+
+A more general version of the acceptance-rejection method introduces a proposal distribution $g(x)$ and a constant $M$ such that
+\begin{equation}
+    p(x) \leq M g(x), \quad \forall x.
+\end{equation}
+
+The algorithm is then modified as follows:
+
+\begin{enumerate}
+    \item Sample 
+    \begin{equation}
+        x \sim g(x).
+    \end{equation}
+    
+    \item Sample 
+    \begin{equation}
+        u \sim \mathcal{U}(0,1).
+    \end{equation}
+    
+    \item Accept $x$ if
+    \begin{equation}
+        u \leq \frac{p(x)}{M g(x)},
+    \end{equation}
+    otherwise reject and repeat.
+\end{enumerate}
+
+This formulation is more efficient when $g(x)$ approximates the shape of $p(x)$, reducing the number of rejected samples.
+
+\subsection{Physical Interpretation}
+
+From a physical perspective, the acceptance-rejection method allows us to simulate random variables distributed according to a given differential rate. In the context of particle physics, if the differential decay rate $\frac{d\Gamma}{dx}$ is known, it can be interpreted as a probability density (up to normalization), and the method enables the generation of synthetic decay events that reproduce the expected physical distribution.
+
+\printbibliography
+\end{document}

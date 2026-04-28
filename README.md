@@ -1,4 +1,23 @@
-# High Energy Physics (HEP) project template
+# High Energy Physics (HEP) project template 
+
+
+# (REFERENCE THE HEP PROJECT TEMPLATE I MADE)
+
+
+
+# REFERENCES FOR NOW
+
+MAIN PAPER: https://arxiv.org/pdf/1406.3575
+
+https://tedboy.github.io/scipy/constants.html
+https://scikit-hep.org/assets/resources/rodrigues-lhcb-2019-08-18.pdf
+https://www.hep.phy.cam.ac.uk/theory/webber/MunichPDF/MClecture1.pdf
+https://repository.sustech.edu/bitstream/handle/123456789/11856/Research.pdf?sequence=2&isAllowed=y
+https://arxiv.org/pdf/hep-ph/9909265
+
+
+
+
 
 This project contains the structure for a particle physics simulation and analysis pipeline.
 

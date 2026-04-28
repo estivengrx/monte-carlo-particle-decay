@@ -26,6 +26,19 @@ env/
 # DotEnv configuration
 .env
 
+# Latex auxiliary files
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+*.bcf
+*.blg
+*.bbl
+*.run.xml
+
 # Jupyter NB Checkpoints
 .ipynb_checkpoints/
 
@@ -40,3 +53,4 @@ env/
 *.csv
 
 references-papers/
+!docs/monte_carlo_theory.pdf
