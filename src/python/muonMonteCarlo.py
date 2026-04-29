@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import scienceplots as sp
 
+from tqdm import tqdm
 from pathlib import Path
 from particle import Particle
 from scipy.constants import physical_constants
@@ -94,31 +95,46 @@ class muonMonteCarlo:
     
     def random_sampling_acceptance_rejection(self, x_values: np.ndarray, n_samples: int) -> np.ndarray:
         """
-        Perform random sampling using the acceptance-rejection method to generate samples of normalized electron energies.
+        Perform random sampling using the acceptance-rejection method.
+        Uses vectorized batches for performance and tqdm for progress tracking.
 
         Parameters
         ----------
         x_values : np.ndarray
-            Array of normalized electron energy values (x) to evaluate the differential decay rate on.
+            Array of x values to evaluate the differential decay rate on.
         n_samples : int
             The number of accepted samples to generate.
 
         Returns
         -------
         np.ndarray
-            An array of accepted normalized electron energy samples drawn from the distribution defined by dΓ/dx.
+            Accepted normalized electron energy samples.
         """
-        samples = []
         max_rate = np.max(self._dGamma_dx_differential_decay_rate(x_values))
-        
-        while len(samples) < n_samples:
-            x_random = np.random.uniform()  # Random x in [0, 1]
-            y_random = np.random.uniform(0, max_rate)  # Random y in [0, max_rate]
-            
-            if y_random < self._dGamma_dx_differential_decay_rate(x_random):
-                samples.append(x_random)
-        
-        return np.array(samples)
+        batch_size = 500_000  # candidates generated per iteration
+        accepted = []
+        n_accepted = 0
+
+        # tqdm tracks accepted samples, total = n_samples is the finish line
+        with tqdm(total=n_samples,
+                desc="  Sampling",
+                unit=" events",
+                colour="blue",
+                dynamic_ncols=True) as pbar:
+
+            while n_accepted < n_samples:
+                x_rand = np.random.uniform(0, 1, batch_size)
+                y_rand = np.random.uniform(0, max_rate, batch_size)
+                mask   = y_rand < self._dGamma_dx_differential_decay_rate(x_rand)
+
+                batch_accepted = x_rand[mask]
+                accepted.append(batch_accepted)
+
+                new = len(batch_accepted)
+                n_accepted += new
+                pbar.update(new)   # advance bar by however many were accepted
+
+        return np.concatenate(accepted)[:n_samples]
 
     def simulation(self, x_min: float, x_max: float) -> None:
         """
@@ -173,7 +189,7 @@ class muonMonteCarlo:
         counts, bins, patches = ax.hist(
             self.E_samples,
             bins=120,
-            density=True,
+            density=False,
             histtype='step',
             linewidth=1.8,
             color='C0',

@@ -16,14 +16,14 @@ def run_case(include_radiative, title, n_events):
     mc.simulation(x_min=0.001, x_max=0.999)
     mc.graphical_analysis(
         title=title,
-        xtitle="Electron Energy $E_e$ [MeV]",
-        ytitle="Probability Density"
+        xtitle="Electron energy $E_e$ [MeV]",
+        ytitle="Number of events"
     )
 
 def main():
     configs = [
-        (True,  "Muon decay electron energy spectrum with radiative corrections", 100_000),
-        (False, "Muon decay electron energy spectrum without radiative corrections", 100_000),
+        (True,  "Muon decay electron energy spectrum with radiative corrections", 5_000_000),
+        (False, "Muon decay electron energy spectrum without radiative corrections", 5_000_000),
     ]
     for include_radiative, title, n_events in configs:
         run_case(include_radiative, title, n_events)
