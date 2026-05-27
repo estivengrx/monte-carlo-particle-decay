@@ -83,12 +83,91 @@ The Monte-Carlo method considered in this work is the acceptance-rejection metho
 
 \subsection{Acceptance-Rejection Method}
 
-Let $p(x)$ be a probability density function (PDF) defined on an interval $[a,b]$, from which we want to sample. Suppose that there exists a constant $M > 0$ such that
+This will be the method used in the Monte Carlo analysis developed in this repository, since the probability density function (PDF) of the decay spectrum is already known, it can be directly employed as the target distribution in the acceptance rejection sampling method, in our case, the target distribution corresponds to the differential decay rate $\frac{d\Gamma}{dx}$, 
+where \(x\) is the normalized electron energy defined as
+
+\[
+x = \frac{2E_e}{m_\mu},
+\qquad 0 < x \leq 1,
+\]
+
+with \(E_e\) the electron energy and \(m_\mu\) the muon mass. Neglecting terms of order \(m_e^2/m_\mu^2\) and higher-order radiative corrections \(\mathcal{O}(\alpha^2)\), the differential decay rate for free muon decay is given by
+
+\[
+\frac{d\Gamma^{\mathrm{free}}}{dx}
+=
+\frac{G_F^2 m_\mu^5}{192\pi^3}
+\,x^2
+\left(
+6 - 4x + \frac{\alpha}{\pi} f(x)
+\right),
+\]
+
+where \(G_F\) is the Fermi constant and $\alpha = \frac{1}{137.035999173(35)}$ is the fine-structure constant. The function \(f(x)\) represents the radiative corrections to the electron energy spectrum and is explicitly written as
+
+\[
+\begin{aligned}
+f(x)
+&=
+\Bigg[
+\frac{5}{3x^2}
++
+\frac{16x}{3}
++
+\frac{4}{x}
++
+(12 - 8x)
+\ln\!\left(\frac{1}{x} - 1\right)
+- 8
+\Bigg]
+\ln\!\left(\frac{m_\mu}{m_e}\right)
+\\[1em]
+&\quad
++
+(6 - 4x)
+\Bigg[
+2\,\mathrm{Li}_2(x)
+- 2\ln^2(x)
++ \ln(x)
++
+\ln(1-x)
+\left(
+3\ln(x)
+-
+\frac{1}{x}
+-
+1
+\right)
+-
+\frac{\pi^2}{3}
+-
+2
+\Bigg]
+\\[1em]
+&\quad
++
+\frac{(1-x)}{3x^2}
+\Big[
+34x^2
++
+(5 - 34x^2 + 17x)\ln(x)
+-
+22x
+\Big]
+\\[1em]
+&\quad
++
+6(1-x)\ln(x),
+\end{aligned}
+\]
+
+where \(\mathrm{Li}_2(x)\) denotes the dilogarithm (Spence) function. This expression is implemented directly in the Monte Carlo framework and used as the target probability density in the acceptance rejection algorithm for generating electron energy spectra from muon decay~\parencite{Czarnecki_2014}.
+
+Let $p(x)$ be a PDF defined on an interval $[a,b]$, from which we want to sample, suppose that there exists a constant $M > 0$ such that
 \begin{equation}
     p(x) \leq M, \quad \forall x \in [a,b].
 \end{equation}
-
-The acceptance-rejection method is based on sampling uniformly from the rectangular region defined by $[a,b] \times [0,M]$, and retaining only those points that lie under the curve $y = p(x)$. According to the fundamental theorem of the method, the marginal distribution of the accepted $x$ values follows the target distribution $p(x)$~\parencite{Nakade_2025}.
+that means, there exists a maximum value of the PDF in the interval, and we can use this maximum value to define a rectangular region in the $xy$-plane that contains the area under the curve of $p(x)$, then the acceptance-rejection method is based on sampling uniformly from the rectangular region defined by $[a,b] \times [0,M]$, and retaining only those points that lie under the curve $y = p(x)$. According to the fundamental theorem of the method, the marginal distribution of the accepted $x$ values follows the target distribution $p(x)$~\parencite{Nakade_2025}.
 
 \subsection{Algorithm}
 
