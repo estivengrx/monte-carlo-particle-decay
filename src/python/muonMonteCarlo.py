@@ -125,7 +125,7 @@ class muonMonteCarlo:
             while n_accepted < n_samples:
                 x_rand = np.random.uniform(0, 1, batch_size)
                 y_rand = np.random.uniform(0, max_rate, batch_size)
-                mask   = y_rand < self._dGamma_dx_differential_decay_rate(x_rand)
+                mask = y_rand < self._dGamma_dx_differential_decay_rate(x_rand)
 
                 batch_accepted = x_rand[mask]
                 accepted.append(batch_accepted)
@@ -134,7 +134,7 @@ class muonMonteCarlo:
                 n_accepted += new
                 pbar.update(new)   # advance bar by however many were accepted
 
-        return np.concatenate(accepted)[:n_samples]
+        return np.concatenate(accepted)[:n_samples] # ensuring we return exactly n_samples, in case we accepted a few extra in the last batch 
 
     def simulation(self, x_min: float, x_max: float) -> None:
         """
@@ -155,8 +155,13 @@ class muonMonteCarlo:
         - self.E_samples : np.ndarray
             Array of sampled electron energies in MeV.
         """
-        self.x_samples = self.random_sampling_acceptance_rejection(np.linspace(x_min, x_max, 100_000), self.n_events)
+        self.x_samples = self.random_sampling_acceptance_rejection(np.linspace(x_min, x_max, self.n_events), self.n_events)
         self.E_samples = self.x_samples * self.muon_mass / 2
+
+        # Saving raw data for potential future analysis as npy files
+        data_dir = self.BASE_DIR / 'data' / 'raw'
+        data_dir.mkdir(parents=True, exist_ok=True)
+        np.save(data_dir / f'muon_decay_samples_{"radiative" if self.include_radiative else "no_radiative"}_{self.n_events}_events.npy', self.E_samples)
     
     def error(self):
         """Add docstring and method outputs"""
@@ -188,10 +193,10 @@ class muonMonteCarlo:
         # Histogram with scientific style
         counts, bins, patches = ax.hist(
             self.E_samples,
-            bins=120,
-            density=False,
+            bins='fd', # Freedman-Diaconis rule for optimal binning
+            density=True,
+            linewidth=1,
             histtype='step',
-            linewidth=1.8,
             color='C0',
             label='Simulated spectrum'
         )
@@ -209,8 +214,8 @@ class muonMonteCarlo:
         fig.tight_layout()
         ax.legend()
 
-        # Figure saving and showing
-        plt.savefig(f'{self.BASE_DIR}/results/plots/{title.replace(" ", "_").lower()}.png', dpi=300)  # Save figure with high resolution
+        # Figure saving
+        plt.savefig(f'{self.BASE_DIR}/results/plots/{title.replace(" ", "_").lower()}.png', dpi=300)
 
     def export_data_to_geant4(self):
         """Add docstring and method outputs"""

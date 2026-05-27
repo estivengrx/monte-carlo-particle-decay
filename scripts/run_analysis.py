@@ -22,8 +22,8 @@ def run_case(include_radiative, title, n_events):
 
 def main():
     configs = [
-        (True,  "Muon decay electron energy spectrum with radiative corrections", 5_000_000),
-        (False, "Muon decay electron energy spectrum without radiative corrections", 5_000_000),
+        (True,  "Muon decay electron energy spectrum with radiative corrections", 10_000_000),
+        (False, "Muon decay electron energy spectrum without radiative corrections", 10_000_000),
     ]
     for include_radiative, title, n_events in configs:
         run_case(include_radiative, title, n_events)
