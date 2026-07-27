@@ -93,15 +93,17 @@ class muonMonteCarlo:
         result[mask] = initial_factor * (x[mask]**2) * (6 - 4*x[mask] + radiative_term)
         return result
     
-    def random_sampling_acceptance_rejection(self, x_values: np.ndarray, n_samples: int) -> np.ndarray:
+    def random_sampling_acceptance_rejection(self, x_min: float, x_max: float, n_samples: int) -> np.ndarray:
         """
         Perform random sampling using the acceptance-rejection method.
         Uses vectorized batches for performance and tqdm for progress tracking.
 
         Parameters
         ----------
-        x_values : np.ndarray
-            Array of x values to evaluate the differential decay rate on.
+        x_min : float
+            Minimum value of x to sample.
+        x_max : float
+            Maximum value of x to sample.
         n_samples : int
             The number of accepted samples to generate.
 
@@ -110,22 +112,24 @@ class muonMonteCarlo:
         np.ndarray
             Accepted normalized electron energy samples.
         """
-        max_rate = np.max(self._dGamma_dx_differential_decay_rate(x_values))
+        y_values = self._dGamma_dx_differential_decay_rate(np.linspace(x_min, x_max, n_samples))
+        min_rate, max_rate = np.min(y_values), np.max(y_values)
+
         batch_size = 500_000  # candidates generated per iteration
         accepted = []
         n_accepted = 0
 
         # tqdm tracks accepted samples, total = n_samples is the finish line
         with tqdm(total=n_samples,
-                desc="  Sampling",
-                unit=" events",
+                desc="Sampling",
+                unit="events",
                 colour="blue",
                 dynamic_ncols=True) as pbar:
 
             while n_accepted < n_samples:
-                x_rand = np.random.uniform(0, 1, batch_size)
-                y_rand = np.random.uniform(0, max_rate, batch_size)
-                mask = y_rand < self._dGamma_dx_differential_decay_rate(x_rand)
+                x_rand = np.random.uniform(x_min, x_max, batch_size)
+                y_rand = np.random.uniform(min_rate, max_rate, batch_size)
+                mask = y_rand <= self._dGamma_dx_differential_decay_rate(x_rand)
 
                 batch_accepted = x_rand[mask]
                 accepted.append(batch_accepted)
@@ -155,13 +159,13 @@ class muonMonteCarlo:
         - self.E_samples : np.ndarray
             Array of sampled electron energies in MeV.
         """
-        self.x_samples = self.random_sampling_acceptance_rejection(np.linspace(x_min, x_max, self.n_events), self.n_events)
-        self.E_samples = self.x_samples * self.muon_mass / 2
+        self.x_samples = self.random_sampling_acceptance_rejection(x_min, x_max, self.n_events)
+        self.E_samples = self.x_samples * self.muon_mass / 2 # inverting the normalization to get actual electron energies in MeV
 
         # Saving raw data for potential future analysis as npy files
-        data_dir = self.BASE_DIR / 'data' / 'raw'
+        data_dir = self.BASE_DIR / 'results' / 'data'
         data_dir.mkdir(parents=True, exist_ok=True)
-        np.save(data_dir / f'muon_decay_samples_{"radiative" if self.include_radiative else "no_radiative"}_{self.n_events}_events.npy', self.E_samples)
+        np.save(data_dir / f'muon_decay_samples_{"radiative" if self.include_radiative else "no_radiative"}_{self.n_events}_events.npy', [self.x_samples, self.E_samples])
     
     def error(self):
         """Add docstring and method outputs"""
@@ -194,7 +198,7 @@ class muonMonteCarlo:
         counts, bins, patches = ax.hist(
             self.E_samples,
             bins='fd', # Freedman-Diaconis rule for optimal binning
-            density=True,
+            density=False,
             linewidth=1,
             histtype='step',
             color='C0',
@@ -216,7 +220,3 @@ class muonMonteCarlo:
 
         # Figure saving
         plt.savefig(f'{self.BASE_DIR}/results/plots/{title.replace(" ", "_").lower()}.png', dpi=300)
-
-    def export_data_to_geant4(self):
-        """Add docstring and method outputs"""
-        pass

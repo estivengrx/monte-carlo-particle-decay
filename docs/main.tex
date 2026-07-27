@@ -226,5 +226,67 @@ This formulation is more efficient when $g(x)$ approximates the shape of $p(x)$,
 
 From a physical perspective, the acceptance-rejection method allows us to simulate random variables distributed according to a given differential rate. In the context of particle physics, if the differential decay rate $\frac{d\Gamma}{dx}$ is known, it can be interpreted as a probability density (up to normalization), and the method enables the generation of synthetic decay events that reproduce the expected physical distribution.
 
+\section*{Comportamiento límite de las funciones en el Monte Carlo}
+
+Sea la tasa diferencial de decaimiento
+
+
+\[
+\frac{d\Gamma}{dx} \equiv \_dGamma\_dx\_differential\_decay\_rate(x),
+\]
+
+
+la cual ya incluye el factor global $x^2$ en su definición interna.
+
+La parte radiativa se modela mediante
+
+
+\[
+f(x) \equiv \_f\_radiative\_corrections(x),
+\]
+
+
+que contiene términos singulares como $\frac{1}{x}$, $\frac{1}{x^2}$ y $\ln(x)$.
+
+Para analizar su contribución efectiva, se considera el producto
+
+
+\[
+x^2 \cdot f(x).
+\]
+
+
+
+\subsection*{Límites en los bordes}
+
+\begin{itemize}
+  \item Cuando $x \to 0^+$:
+  
+
+\[
+  \lim_{x \to 0^+} x^2 f(x) \quad \text{es finito, ya que los términos } \frac{1}{x}, \frac{1}{x^2}
+  \text{ quedan compensados por el prefactor } x^2.
+  \]
+
+
+
+  \item Cuando $x \to 1^-$:
+  
+
+\[
+  \lim_{x \to 1^-} x^2 f(x) \quad \text{es también finito, aunque aparecen
+  contribuciones logarítmicas } \ln(1-x).
+  \]
+
+
+  Estas logaritmias divergen suavemente, pero multiplicadas por $x^2$ no generan
+  una singularidad no integrable en el borde.
+\end{itemize}
+
+\subsection*{Conclusión}
+El producto $x^2 f(x)$ asegura que la parte radiativa aporta una contribución
+bien definida en ambos extremos del dominio $x \in (0,1)$, y por tanto el
+Monte Carlo puede muestrear sin problemas la distribución completa.
+
 \printbibliography
 \end{document}

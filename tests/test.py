@@ -32,8 +32,7 @@ class TestMuonMonteCarlo(unittest.TestCase):
     
     def test_acceptance_rejection_method(self):
         """Test the acceptance-rejection method produces the correct number of samples and valid values."""
-        x_vals = np.linspace(0.1, 0.9, 1000)
-        samples = self.mc_sim.random_sampling_acceptance_rejection(x_vals, 50)
+        samples = self.mc_sim.random_sampling_acceptance_rejection(x_min=0.1, x_max=0.9, n_samples=50)
         self.assertEqual(len(samples), 50)
         self.assertTrue(np.all(samples >= 0))
         self.assertTrue(np.all(samples <= 1))
