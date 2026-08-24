@@ -54,6 +54,7 @@ env/
 
 references-papers/
 !docs/monte_carlo_theory.pdf
+!docs/figures/pdf_preview.png
 
 REFERENCE-GEANT4-PROJECT/
 *.npy
