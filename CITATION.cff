@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite this repository and the physics references listed in docs/references.bib."
+title: "Monte Carlo Study of the Muon-Decay Electron Spectrum"
+authors:
+  - family-names: "Castrillon Alzate"
+    given-names: "Estiven"
+version: 0.2.0
+date-released: 2026-10-18
+license: MIT
+type: software
+repository-code: "https://github.com/estivengrx/monte-carlo-particle-decay"

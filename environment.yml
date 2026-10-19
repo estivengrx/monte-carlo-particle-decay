@@ -1,12 +1,8 @@
-name: particle-physics-env
+name: muon-decay
 channels:
   - conda-forge
 dependencies:
-  - python=3.9
-  - numpy
-  - pandas
-  - matplotlib
-  - jupyter
-  - scikit-learn
-  - root
-  - geant4
+  - python=3.12
+  - pip
+  - pip:
+      - -e .[test,notebook]

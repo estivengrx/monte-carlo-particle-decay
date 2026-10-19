@@ -1,32 +1,23 @@
-*.o
-*.so
-*.a
+# Python build artifacts and environments
+__pycache__/
+*.py[cod]
+*.egg-info/
+.Python
 build/
 dist/
-*.egg-info/
-__pycache__/
-*.pyc
-.ipynb_checkpoints/
-*.root          # ROOT data files, grandes
-*.hepdata       # Datos HEP
-
-# Uncomment this line in the actual projets to ignore raw data files
-# data/raw/*      # raw data files, big and not needed in the repository
-# results/plots/*.pdf  # generated plots, can be large and are not needed in the repository
-.vscode/
-
-# Byte-compiled / optimized / DLL files
-*.py[cod]
-
-# Distribution / packaging
-.Python
 env/
 .env/
+.venv/
 
-# DotEnv configuration
-.env
+# Local editors and caches
+.vscode/
+.idea/
+.ipynb_checkpoints/
+.pytest_cache/
+.DS_Store
+Thumbs.db
 
-# Latex auxiliary files
+# LaTeX intermediates (report source and PDF remain visible)
 *.aux
 *.log
 *.out
@@ -39,23 +30,19 @@ env/
 *.bbl
 *.run.xml
 
-# Jupyter NB Checkpoints
-.ipynb_checkpoints/
+# Generated simulation outputs; preserve the small included example sample.
+results/data/*.npy
+!results/data/muon_decay_samples_radiative_100_events.npy
+results/plots/*.png
+results/plots/*.pdf
+!results/data/.gitkeep
+!results/plots/.gitkeep
 
-# Mac OS-specific storage files
-.DS_Store
-
-*.HEIC
-*.png
-*.xlsx
-*.pdf
-*.docx
-*.csv
-
+# External/private datasets and reference corpus
 references-papers/
-!docs/monte_carlo_theory.pdf
-!docs/figures/pdf_preview.png
-!docs/main.pdf
-
 REFERENCE-GEANT4-PROJECT/
-*.npy
+*.root
+*.hepdata
+*.HEIC
+*.xlsx
+*.docx

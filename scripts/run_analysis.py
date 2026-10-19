@@ -6,28 +6,43 @@ with and without radiative corrections, using the muonMonteCarlo class.
 """
 from sys import path
 from os.path import dirname, abspath
+from numpy import concatenate
 
 # Add project root to Python path
 path.append(dirname(dirname(abspath(__file__))))
 from src.python.muonMonteCarlo import muonMonteCarlo
 
-def run_case(include_radiative, title, n_events):
-    mc = muonMonteCarlo(n_events, include_radiative=include_radiative)
-    mc.simulation(x_min=4.770585e-03, x_max=0.99999) # set x_min to be the lowest value that allows dGamma/dx to be non-negative, and x_max to be just below 1 to avoid the singularity at x=1
+def run_case(include_radiative, title, n_events, n_runs=100):
+    all_samples = []
+
+    for _ in range(n_runs):
+        mc = muonMonteCarlo(n_events, include_radiative=include_radiative)
+        mc.simulation(x_min=4.770585e-03, x_max=0.99999)
+        all_samples.append(mc.E_samples)
+
+    # Concatenate all runs → final MC sample
+    all_samples = concatenate(all_samples)
+
+    # Plot final histogram
+    mc.E_samples = all_samples  # reuse plotting method
     mc.graphical_analysis(
         title=title,
         xtitle="Electron energy $E_e$ [MeV]",
         ytitle="Number of events"
     )
-    print(mc.x_samples.min(), mc.x_samples.max())
+
+    print("Final MC range:", all_samples.min(), all_samples.max())
+
 
 def main():
     configs = [
-        (True,  "Muon decay electron energy spectrum with radiative corrections", 100_000_000),
-        (False, "Muon decay electron energy spectrum without radiative corrections", 100_000_000),
+        (True,  "Muon decay spectrum with radiative corrections", 100_000, 100),
+        (False, "Muon decay spectrum without radiative corrections", 100_000, 100),
     ]
-    for include_radiative, title, n_events in configs:
-        run_case(include_radiative, title, n_events)
+
+    for include_radiative, title, n_events, n_runs in configs:
+        run_case(include_radiative, title, n_events, n_runs)
+
 
 if __name__ == "__main__":
     main()

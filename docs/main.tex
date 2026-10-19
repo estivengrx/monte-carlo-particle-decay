@@ -8,20 +8,22 @@
 \usepackage{cite}
 \usepackage{hyperref}
 \usepackage{xcolor}
-\usepackage{float}
-\usepackage{caption}
 \usepackage{siunitx}
 \usepackage{booktabs}
 \usepackage{tabularx}
+\usepackage{url}
+\usepackage{float}
+
+\sisetup{detect-all}
 
 \begin{document}
 
-\title{Muon decay rate analysis using Monte Carlo acceptance-rejection method for a muon bound to a nucleus}
+\title{Monte Carlo study of the Muon-Decay electron spectrum with radiative corrections}
 
 \author{
     \IEEEauthorblockN{Estiven Castrillon Alzate}
     \IEEEauthorblockA{
-        Instituto de Física, Universidad de Antioquia \\
+        Instituto de Física, Universidad de Antioquia\\
         \href{mailto:estiven.castrillon2@udea.edu.co}{estiven.castrillon2@udea.edu.co}
     }
 }
@@ -29,126 +31,146 @@
 \maketitle
 
 \begin{abstract}
-This document presents a study of the Monte Carlo acceptance-rejection method applied to the differential decay rate of the muon bound to a nucleus, including radiative corrections, with the goal of understanding sampling techniques used in High Energy Physics simulations, as well as the analysis of the radiative terms, its divergences and the overall range of its variables. The complete process has been throughly documented in this repository, including the implementation of the Acceptance-Rejection Method (ARM) in Python and the analysis of the radiative corrections. The results indicate a well-defined behavior corresponding with the article published by Czarnecki et al. in 2014, which is the main reference for this work.
+This report documents a Python Monte Carlo study of the electron energy spectrum in the decay $\mu^-\to e^-\bar{\nu}_e\nu_\mu$, evaluating the Michel spectrum and an $\alpha$-order radiative correction. For each correction setting, the analysis driver performs 100 runs of 100,000 accepted events, concatenates their energies, and makes one histogram from the resulting 10-million-event sample. The calculation is motivated by the spectrum discussed by Czarnecki et al. for a muon bound to a nucleus, however, the implemented formula is the free-muon spectrum and does not include atomic binding or nuclear-structure effects. The driver produces separate histograms for the two correction settings. The sampler still estimates its envelope on a finite grid and samples the vertical coordinate from the estimated minimum rather than from zero, so repeating the runs does not remove this per-event sampling limitation. The report explains the physical model, updated run procedure, and scope of the generated plots.
 \end{abstract}
+
+\begin{IEEEkeywords}
+Muon decay, Michel spectrum, Monte Carlo, rejection sampling, radiative corrections.
+\end{IEEEkeywords}
 
 \section{Introduction}
 
-The Monte-Carlo method is a tool used widely in computer simulations in experimental physics. Here, I will study this mathematical and computational technique to enhance my understanding of simulations in High Energy Physics (HEP), the main reference for this learning process is chapter 13 from the book \textit{Probability for Physicists}~\cite{Sirca_2016} specifically used for the Monte Carlo method, and the article \textit{Michel decay spectrum for a muon bound to a nucleus}~\cite{Czarnecki_2014} which is the main reference for the analysis of the radiative corrections in muon decay.
-
-The Monte-Carlo method considered in this work is the ARM, a technique used to generate random samples from a probability distribution that may be difficult to sample from directly, the method works by generating random samples from a proposal distribution and accepting or rejecting those samples according to a criterion that guarantees that the accepted samples follow the desired target distribution~\cite{Nakade_2025}.
-
-The main reference of this work is the article \textit{Michel decay spectrum for a muon bound to a nucleus}~\cite{Czarnecki_2014}, which provides a detailed analysis of the radiative corrections to the Michel decay spectrum, including the derivation of the differential decay rate and the implementation of the radiative corrections, which is the main focus of this work. The article also provides a comparison of the theoretical predictions with experimental data, which serves as a benchmark for the Monte Carlo simulations developed in this work, although the experimental data is not included in this repository, the theoretical predictions and graphical representations are used as a reference for the analysis of the radiative corrections.
-
-\section{Methodology}
-
-\subsection{Acceptance-Rejection mathematics}
-This will be the method used in the Monte Carlo analysis developed in this repository, since the probability density function (PDF) of the decay spectrum is already known, it can be directly employed as the target distribution in the ARM.
-
-\subsection{Target distribution, muon decay rate and radiative corrections}
-
- HERE AN EXPLANATION MORE THOROUGH OF THE TARGET DISTRIBUTION AND THE RADIATIVE CORRECTIONS, INCLUDING THE EQUATIONS AND DEFINITIONS. EXPLANATION HERE OF THE PAPER!!!
-
-In our case, the target distribution corresponds to the differential decay rate $\frac{d\Gamma}{dx}$, where $x$ is the normalized electron energy defined as
-
-$$
-x = \frac{2E_e}{m_\mu}, \qquad 0 < x \leq 1,
-$$
-
-with $E_e$ the electron energy and $m_\mu$ the muon mass.
-
-Neglecting terms of order $m_e^2/m_\mu^2$ and higher-order radiative corrections $\mathcal{O}(\alpha^2)$, the differential decay rate for free muon decay is given by
-
-
+Muon decay is a process for studying weak interactions and precision quantum electrodynamics (QED), for a muon at rest, the main decay mode is
 \begin{equation}
-\frac{d\Gamma^{\mathrm{free}}}{dx}
-= \frac{G_F^2 m_\mu^5}{192\pi^3} \,x^2
-  \left( 6 - 4x + \frac{\alpha}{\pi} f(x) \right)
-\label{eq:free_muon_decay_rate}
+    \mu^- \longrightarrow e^- + \bar{\nu}_e + \nu_\mu.
 \end{equation}
+The electron energy is continuous because the two neutrinos carry away a variable share of the available energy, its spectrum is commonly expressed in terms of a dimensionless energy variable, making the shape easy to compare in calculations.
 
+This repository combines that spectrum with the Monte Carlo acceptance-rejection method, it evaluates a spectrum and radiative correction, draws electron energies for each choice, saves samples and figures, and provides a notebook for comparing the distributions.
 
-where $G_F$ is the Fermi constant and $\alpha \approx \frac{1}{137}$ is the fine-structure constant, having in mind that the constantes used in the Python code come from the library \texttt{scipy.constants.physical\_constants}, which in escense comes from the CODATA 2022 NIST database~\cite{nist_constants}.
+The principal physics reference is Czarnecki et al., who study the Michel spectrum for a muon bound to a nucleus~\cite{Czarnecki_2014}. The paper motivates the radiative-correction formula used here, but the implementation in this repository uses the free-muon expression, a bound muon experiences the nuclear Coulomb field, and its spectrum requires bound state physics not present in this program due to its complexity. The work is therefore a free-muon spectrum exercise inspired by the paper, not a simulation of the full bound-muon calculation or a reproduction of the paper's experimental comparison.
 
-The function $f(x)$ represents the radiative corrections to the electron energy spectrum and is explicitly written as:
+\section{Physics model}
 
+\subsection{Normalized energy and kinematic range}
+
+The code uses the normalized electron energy
 \begin{equation}
-\resizebox{\columnwidth}{!}{%
-  \ensuremath{%
-    \begin{aligned}
-      f(x) &= \Bigg[ \frac{5}{3x^2} + \frac{16x}{3} + \frac{4}{x}
-                + (12 - 8x)\ln\!\left(\frac{1}{x}-1\right) - 8 \Bigg]
-                \ln\!\left(\frac{m_\mu}{m_e}\right) \\
-           &\quad + (6 - 4x)\Bigg[ 2\,\mathrm{Li}_2(x) - 2\ln^2(x)
-                + \ln(x) \\
-           &\qquad\quad + \ln(1-x)\left(3\ln(x) - \frac{1}{x} - 1\right)
-                - \frac{\pi^2}{3} - 2 \Bigg] \\
-           &\quad + \frac{1-x}{3x^2}\Big[ 34x^2
-                + (5 - 34x^2 + 17x)\ln(x) - 22x \Big] \\
-           &\quad + 6(1-x)\ln(x).
-    \end{aligned}
-  }%
-}
-\label{eq:radiative_corrections}
+    x = \frac{2E_e}{m_\mu}, \qquad E_e = \frac{x m_\mu}{2},
+    \label{eq:x-definition}
 \end{equation}
+where $E_e$ and $m_\mu$ are expressed in the same energy units.
 
-This expression is implemented directly in the Monte Carlo framework and used as the target probability density in the acceptance rejection algorithm for generating electron energy spectra from muon decay~\cite{Czarnecki_2014}.
+\subsection{Main Michel spectrum}
 
-\section*{Comportamiento límite de las funciones en el Monte Carlo}
+At tree level, neglecting terms suppressed by $m_e^2/m_\mu^2$, the differential decay rate is
+\begin{equation}
+    \frac{d\Gamma_0}{dx}
+    = C\,x^2(6-4x), \qquad
+    C = \frac{G_F^2 m_\mu^5}{192\pi^3},
+    \label{eq:tree-spectrum}
+\end{equation}
+where $G_F$ is the Fermi coupling constant. The shape factor $x^2(6-4x)$ is nonnegative on the physical interval and vanishes at the low energy endpoint, the overall constant $C$ sets the rate scale where the kinematic range is $0<x\le 1$, corresponding to $0<E_e\le m_\mu/2$.
 
-Sea la tasa diferencial de decaimiento
+\subsection{Order-\texorpdfstring{$\alpha$}{alpha} radiative correction}
 
+The implementation adds the order-$\alpha$ term to the main shape:
+\begin{equation}
+    \frac{d\Gamma}{dx}
+    = C\,x^2\left[6-4x+\frac{\alpha}{\pi}f(x)\right],
+    \label{eq:corrected-spectrum}
+\end{equation}
+where $\alpha$ is the fine-structure constant. Terms beyond first order in $\alpha$ are omitted. The correction used in the program is
+\begin{align}
+ f(x)={}&\left[\frac{5}{3x^2}+\frac{16x}{3}+\frac{4}{x}\right.\notag\\
+ &\qquad\left.+(12-8x)\ln\!\left(\frac{1}{x}-1\right)-8\right]
+ \ln\!\left(\frac{m_\mu}{m_e}\right) \notag\\
+ &+(6-4x)\left[2\operatorname{Li}_2(x)-2\ln^2x+\ln x\right.\notag\\
+ &\qquad\left.+\ln(1-x)\left(3\ln x-\frac{1}{x}-1\right)
+ -\frac{\pi^2}{3}-2\right] \notag\\
+ &+\frac{1-x}{3x^2}\left[34x^2+(5-34x^2+17x)\ln x-22x\right]\notag\\
+ &+6(1-x)\ln x.
+ \label{eq:fx}
+\end{align}
+Here $m_e$ is the electron mass and $\operatorname{Li}_2(x)$ is the dilogarithm, sciPy's Spence function obeys $\operatorname{spence}(z)=\operatorname{Li}_2(1-z)$, so the code's call \texttt{spence(1 - x)} evaluates $\operatorname{Li}_2(x)$. The logarithms and inverse powers make the correction numerically sensitive near $x=0$ and $x=1$.
 
-\[
-\frac{d\Gamma}{dx} \equiv \_dGamma\_dx\_differential\_decay\_rate(x),
-\]
+The constants are obtained from the \texttt{particle} package and \texttt{scipy.constants.physical\_constants}, the latter follows CODATA/NIST physical-constant data~\cite{nist_constants}. There is an important unit caveat for absolute rates: the Fermi constant supplied by SciPy is conventionally tabulated in $\mathrm{GeV}^{-2}$, whereas the particle masses in this project are in MeV. The code combines these values without an explicit conversion, but since $C$ is a common positive factor that cancels from the ideal normalized sampling distribution, this does not change the intended shape of the spectrum compared to the paper.
 
+\section{Monte Carlo method}
 
-la cual ya incluye el factor global $x^2$ en su definición interna.
+\subsection{Acceptance-rejection derivation}
 
-La parte radiativa se modela mediante
+For a proposal density $q(x)$ and a constant $M$ satisfying $p(x)\le Mq(x)$ throughout the sampling interval, the standard procedure is:
+\begin{enumerate}
+    \item Draw a candidate $X\sim q$.
+    \item Draw $U\sim\mathcal{U}(0,1)$ independently.
+    \item Accept $X$ when $U\le p(X)/(Mq(X))$, otherwise reject it.
+\end{enumerate}
+For the uniform proposal on $[x_{\min},x_{\max}]$, $q(x)=1/(x_{\max}-x_{\min})$. Equivalently, one may draw a point uniformly below an envelope $M_f\ge \max_x(d\Gamma/dx)$ and accept it when
+\begin{equation}
+    Y\le \frac{d\Gamma}{dx}(X),\qquad
+    X\sim\mathcal{U}(x_{\min},x_{\max}),\quad
+    Y\sim\mathcal{U}(0,M_f).
+    \label{eq:rejection-test}
+\end{equation}
+The accepted values then follow the target density, and the expected acceptance fraction is the area under the target divided by the area under the envelope, the method and its assumptions are discussed in standard Monte Carlo references~\cite{Sirca_2016,Dunn_Shultis_2012,Nakade_2025}.
 
+\subsection{Implementation in this repository}
 
-\[
-f(x) \equiv \_f\_radiative\_corrections(x),
-\]
+The class \texttt{muonMonteCarlo} in \texttt{src/python/muonMonteCarlo.py} evaluates $f(x)$ and $d\Gamma/dx$ with NumPy arrays. It masks values outside $0<x\le 1$, uses a batch size of 500,000 candidates, and tracks the number of accepted events with \texttt{tqdm}. Accepted normalized energies are converted to MeV using Eq.~\eqref{eq:x-definition}. The analysis script \texttt{scripts/run\_analysis.py} processes one case with radiative corrections and one without them. For each case it calls the simulation 100 times with 100,000 accepted events per call, concatenates the 100 energy arrays, and plots the combined 10-million-event sample. Both cases use
+\begin{equation}
+    x_{\min}=4.770585\times10^{-3},\qquad x_{\max}=0.99999.
+    \label{eq:simulation-range}
+\end{equation}
+The lower cutoff was chosen from a numerical scan because the order-$\alpha$ rate becomes negative at sufficiently small $x$, it is an empirical cutoff for this setup, not a universal physical threshold. The upper cutoff avoids evaluating the logarithmic endpoint terms at exactly $x=1$. Each call to \texttt{simulation} saves a paired array using a filename based on the correction setting and per-run event count. Repetitions use the same filename, so the files contain only the final 100,000-event run, not the concatenated sample used in the plot. The driver does not set an explicit seed, so it does not record reproducible seeds for the individual runs.
 
+The rejection routine estimates both the minimum and maximum rates on a finite grid and draws its vertical coordinate from that estimated minimum to maximum. If the minimum is nonzero, the accepted density is proportional to the rate minus that minimum rather than to the rate itself, a finite grid also does not establish a global maximum. Repeating and concatenating runs increases the sample count but does not correct this limitation or by itself validate the target distribution.
 
-que contiene términos singulares como $\frac{1}{x}$, $\frac{1}{x^2}$ y $\ln(x)$.
+\section{Software and analysis workflow}
 
-Para analizar su contribución efectiva, se considera el producto
-
-
-\[
-x^2 \cdot f(x).
-\]
-
-
-
-\subsection*{Límites en los bordes}
-
+The repository's main components are:
 \begin{itemize}
-\item Cuando $x \to 0^+$:
-
-
-\[
-\lim_{x \to 0^+} x^2 f(x) \quad \text{es finito}.
-\]
-
-
-\item Cuando $x \to 1^-$:
-
-
-\[
-\lim_{x \to 1^-} x^2 f(x) \quad \text{es también finito}.
-\]
-
-
+    \item \texttt{src/python/muonMonteCarlo.py}: constants, spectrum functions, sampling, data output, and histogram generation.
+    \item \texttt{scripts/run\_analysis.py}: the two configured simulation cases and plot labels.
+    \item \url{notebooks/01_analysis_of_results/muon_decay_rate_analysis.ipynb}: spectrum comparison, histograms, and summary statistics.
+    \item \texttt{tests/test.py}: basic checks of initialization, rate shape, sample count, range, saved data, and plot creation.
+    \item \texttt{tests/testing\_pdf\_function.py}: exploratory boundary-limit and sign scans for the corrected rate.
 \end{itemize}
 
-\subsection*{Conclusión}
+\section{Results}
 
-El producto $x^2 f(x)$ asegura que la parte radiativa aporta una contribución bien definida en ambos extremos del dominio $x \in (0,1)$.
+The current script produces one count histogram per correction setting from 100 runs of 100,000 accepted events each (10 million plotted events per setting). The individual current plots are shown below. The notebook and its embedded comparison are from an earlier 100-million-event analysis, its summary values are historical and are not measurements from the current 10-million-event plots:
+\begin{table}[H]
+\caption{Summary reported by the saved analysis-notebook output. Peak density is the height of the maximum histogram bin and depends on the binning.}
+\label{tab:results}
+\centering
+\footnotesize
+\begin{tabular}{lrr}
+\toprule
+Configuration & Peak density & Peak-bin center\\
+\midrule
+No radiative term & $3.789794\times10^{-2}$ & 52.7928\\
+Order-$\alpha$ correction & $3.613309\times10^{-2}$ & 50.1748\\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{table}
+The historical values in the table are finite-bin histogram summaries, not fitted peak locations or uncertainties. The repeated-run driver prints the minimum and maximum energy of the concatenated sample. The console output supplied for the updated run reports a range of approximately \SIrange{0.3075}{52.8287}{MeV}, this is an observed range, not a fitted endpoint or a peak measurement. Radiative corrections alter the shape of the spectrum, while the kinematic endpoint is unchanged.
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\columnwidth]{../results/plots/electron_energy_spectrum_comparison.pdf}
+    \caption{Normalized electron-energy histograms with and without the radiative correction, as saved by the analysis notebook.}
+    \label{fig:comparison}
+\end{figure}
+
+The comparison figure and peak-bin table are retained from the earlier notebook analysis and refer to its $10^8$-event input files, not the current driver output. The latest driver writes the two current individual plots but saves only the last 100,000-event array for each case because each repetition overwrites the same filename. The combined samples used for the plots are not persisted. The project also contains a small test plot, which is not a physics result.
+
+The current run script produces $10^7$ accepted events per configuration from 100 runs of $10^5$ events, in addition to rejected candidates, runtime and memory use can be substantial because the combined energy samples are held in memory for plotting, the generated values are conditional on the configured interval and on the current sampler implementation.
+
+\section{Conclusion}
+
+This project is a useful worked example connecting a lepton-decay spectrum to Monte Carlo sampling, vectorized Python code, saved data, tests, and visual analysis. The reported comparison illustrates that adding the order-$\alpha$ term changes the spectrum's shape while leaving the energy endpoint fixed, physically precise interpretation.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
