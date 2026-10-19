@@ -81,7 +81,8 @@ class muonMonteCarlo:
         mask = (x > 0) & (x <= 1)
 
         # Initial factor from the decay rate formula in the paper 
-        initial_factor = (self.Gf_fermi_constant**2 * self.muon_mass**5) / (192 * (np.pi ** 3))
+        muon_mass_gev = self.muon_mass / 1000.0 # Convert MeV to GeV for consistency with the Fermi constant units
+        initial_factor = (self.Gf_fermi_constant**2 * muon_mass_gev**5) / (192 * np.pi**3)
         
         # Radiative corrections term, which can be significant for precision calculations
         if self.include_radiative:
